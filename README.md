@@ -1,4 +1,4 @@
-# This repor ceate AI-agent examples based on my Local LLM services
+# This repo ceate AI-agent examples based on my Local LLM services
 
 Set up vLLM service
 [vLLM setupt](vLLM_setup.md)
@@ -6,7 +6,7 @@ Set up vLLM service
 ## AI Agent Example
 
 1. create Model
-reference this to creat a model `https://python.langchain.com/docs/integrations/chat/vllm/`
+* reference this to creat a model `https://python.langchain.com/docs/integrations/chat/vllm/`
 
 ```
 conda create -n lainchain python=3.12
@@ -15,11 +15,14 @@ pip install lainchain langchain_community
 pip install lainchain langchain-openai
 pip install openai
 ```
-2. create agent with model
+
+2. create graph state with node
+
 ```
 pip install langgraph 
+python agent_1.py
 ```
 
 ## Reference
 * https://langchain-ai.github.io/langgraph/
-* https://www.getzep.com/ai-agents/introduction-to-ai-agents
+* https://langchain-ai.github.io/langgraph/tutorials/get-started/1-build-basic-chatbot
