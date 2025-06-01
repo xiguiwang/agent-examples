@@ -1,0 +1,30 @@
+# Copyright (C) 2024 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+services:
+  vllm-service:
+    image: vllm-xpu-env:latest
+    container_name: xpu-vllm-service
+    devices:
+      - /dev/dri:/dev/dri
+    ports:
+      - "8000:8000"
+    volumes:
+      - "${HOME}/.cache/huggingface:/root/.cache/huggingface"
+      - "/dev/dri/by-path:/dev/dri/by-path"
+    shm_size: 1g
+    environment:
+      no_proxy: ${no_proxy}
+      http_proxy: ${http_proxy}
+      https_proxy: ${https_proxy}
+      HUGGINGFACEHUB_API_TOKEN: ${HUGGINGFACEHUB_API_TOKEN}
+      LLM_MODEL_ID: Qwen/Qwen2.5
+      VLLM_TORCH_PROFILER_DIR: "/mnt"
+    command: --model "Qwen/Qwen3-4B" --host 0.0.0.0 --port 8000
+    ipc: host
+    network_mode: host
+    restart: always
+
+#networks:
+#  default:
+#    driver: bridge
