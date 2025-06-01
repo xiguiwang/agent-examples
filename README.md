@@ -14,6 +14,7 @@ conda activate lainchain
 pip install lainchain langchain_community
 pip install lainchain langchain-openai
 pip install openai
+pip install ipython
 ```
 
 2. create graph state with node

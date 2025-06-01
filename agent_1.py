@@ -38,7 +38,7 @@ graph_builder.add_edge(START, "chatbot")
 
 graph = graph_builder.compile()
 
-'''
+
 from IPython.display import Image, display
 
 try:
@@ -46,7 +46,7 @@ try:
 except Exception:
     # This requires some extra dependencies and is optional
     pass
-'''
+
 
 def stream_graph_updates(user_input: str):
     for event in graph.stream({"messages": [{"role": "user", "content": user_input}]}):

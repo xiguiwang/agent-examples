@@ -19,8 +19,11 @@ services:
       https_proxy: ${https_proxy}
       HUGGINGFACEHUB_API_TOKEN: ${HUGGINGFACEHUB_API_TOKEN}
       LLM_MODEL_ID: Qwen/Qwen2.5
+      HF_OFFLINE: 1
+      TRANSFORMERS_OFFLINE: 1
       VLLM_TORCH_PROFILER_DIR: "/mnt"
-    command: --model "Qwen/Qwen3-4B" --host 0.0.0.0 --port 8000
+    #command: --model "Qwen/Qwen3-4B" --host 0.0.0.0 --port 8000
+    command: --model "Qwen/Qwen3-4B" --host 0.0.0.0 --port 8000 --enable-auto-tool-choice --tool-call-parser hermes
     ipc: host
     network_mode: host
     restart: always

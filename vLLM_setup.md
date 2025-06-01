@@ -25,6 +25,13 @@ docker run -it \
              vllm-xpu-env
 ```
 
+### Start vLLM for Agent
+
+Follow the instructions provided in the README of Qwen2 for deploying an OpenAI-compatible API service. Specifically, consult the vLLM section for high-throughput GPU deployment or the Ollama section for local CPU (+GPU) deployment. For the QwQ and Qwen3 model, it is recommended to add the --enable-reasoning and --reasoning-parser deepseek_r1 parameters when starting the service. Do not add the --enable-auto-tool-choice and --tool-call-parser hermes parameters, as Qwen-Agent will parse the tool outputs from vLLM on its own.
+
+Reference
+* https://github.com/xiguiwang/Qwen-Agent
+
 ### Access the vLLM services
 After docker container started
 
