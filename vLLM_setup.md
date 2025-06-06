@@ -72,7 +72,26 @@ vllm-openai  |   File "/usr/local/lib/python3.12/dist-packages/vllm/worker/worke
 vllm-openai  |     raise ValueError(
 vllm-openai  | ValueError: Bfloat16 is only supported on GPUs with compute capability of at least 8.0. Your Tesla V100-PCIE-32GB GPU has compute capability 7.0. You can use float16 instead by explicitly setting thedtype flag in CLI, for example: --dtype=half.
 Gracefully stopping... (press Ctrl+C again to force)
+
+3. Confirmed Compatible Settings for V100 + Qwen2.5 + vLLM
+Component
+Version / Setting
+GPU
+Tesla V100 (compute 7.0)
+PyTorch
+2.0.1 + CUDA 11.7
+CUDA Driver
+CUDA 11.8 Runtime Compatible
+vLLM
+0.6.1.post1
+Model
+Qwen/Qwen2-5-7B-Instruct
+Required Flag
+--dtype half (to avoid bfloat16)
+
+pull vllm docker image: vllm/vllm-openai:v0.6.6.post1
 ```
+
 
 ### Start vLLM for Agent
 
@@ -111,6 +130,7 @@ Non-stream output:
 ```
 
 Stream output format:
+```
 data: {"id":"cmpl-9d0ab69d6c9a4321857d6e0b9acaba7e","object":"text_completion","created":1748737044,"model":"Qwen/Qwen3-4B","choices":[{"index":0,"text":" city","logprobs":null,"finish_reason":null,"stop_reason":null}],"usage":null}
 
 data: {"id":"cmpl-9d0ab69d6c9a4321857d6e0b9acaba7e","object":"text_completion","created":1748737044,"model":"Qwen/Qwen3-4B","choices":[{"index":0,"text":" in","logprobs":null,"finish_reason":null,"stop_reason":null}],"usage":null}
@@ -125,7 +145,7 @@ data: {"id":"cmpl-9d0ab69d6c9a4321857d6e0b9acaba7e","object":"text_completion","
 
 data: {"id":"cmpl-9d0ab69d6c9a4321857d6e0b9acaba7e","object":"text_completion","created":1748737044,"model":"Qwen/Qwen3-4B","choices":[{"index":0,"text":",","logprobs":null,"finish_reason":"length","stop_reason":null}],"usage":null}
 
-data: [DONE]```
+data: [DONE]
 ```
 
 ## Lainchain chatbot

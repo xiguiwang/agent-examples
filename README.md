@@ -4,7 +4,7 @@
 
 AI agent
 
-[Agent implementation in Langchain & Langgraph](Agent-and-Graph.md)
+[Agent implementation in Langchain & Langgraph](agent_and_langgraph.md)
 
 ## Prerqueist
 
@@ -38,3 +38,4 @@ python agent_1.py
 * https://langchain-ai.github.io/langgraph/
 * https://langchain-ai.github.io/langgraph/tutorials/get-started/1-build-basic-chatbot
 * https://github.com/modelcontextprotocol/python-sdk.git
+* https://langchain-ai.github.io/langgraph/how-tos/tool-calling/#handle-large-numbers-of-tools
