@@ -1,7 +1,56 @@
 # Some conception in Langchain, MCP etc. 
 
+## Tool call
+The result would be an AIMessage containing the model's response in natural language (e.g., "Hello!"). However, if we pass an input relevant to the tool, the model should choose to call it:
+
+```
+result = llm_with_tools.invoke("What is 2 multiplied by 3?")
+```
+
+But, if the tool was called, result will have a tool_calls attribute. This attribute includes everything needed to execute the tool, including the tool name and input arguments:
+
+```
+result.tool_calls
+{'name': 'multiply', 'args': {'a': 2, 'b': 3}, 'id': 'xxx', 'type': 'tool_call'}
+```
+
 ## Langchain Tools 
 
+### Overview
+The **tool** abstraction in LangChain associates a Python **function** with a **schema** that defines the function's **name, description** and **expected arguments**.
+
+**Tools** can be passed to **chat models** that support **tool calling** allowing the model to request the execution of a specific function with specific inputs.
+
+### Tool interface
+
+The tool interface is defined in the BaseTool class which is a subclass of the Runnable Interface.
+
+The key attributes that correspond to the tool's schema:
+
+* name: The name of the tool.
+* description: A description of what the tool does.
+* args: Property that returns the JSON schema for the tool's arguments.
+* 
+The key methods to execute the function associated with the tool:
+
+* invoke: Invokes the tool with the given arguments.
+* ainvoke: Invokes the tool with the given arguments, asynchronously. Used for async programming with Langchain.
+
+### Tool artifacts
+Tools are utilities that can be called by a model, and whose outputs are designed to be fed back to a model. Sometimes, however, there are artifacts of a tool's execution that we want to make accessible to downstream components in our chain or agent, but that we don't want to expose to the model itself. For example if a tool returns a custom object, a dataframe or an image, we may want to pass some metadata about this output to the model without passing the actual output to the model. At the same time, we may want to be able to access this full output elsewhere, for example in downstream tools.
+
+
+```
+@tool(response_format="content_and_artifact")
+def some_tool(...) -> Tuple[str, Any]:
+    """Tool that does something."""
+    ...
+    return 'Message for chat model', some_artifact 
+```
+See [how to return artifacts](https://python.langchain.com/docs/how_to/tool_artifacts/) from tools for more details.
+
+
+### DeepSpeed explaination 
 在 LangChain 框架中，`@tool`是一个非常重要的装饰器（decorator），它的作用是将普通 Python 函数转换为 LangChain 的工具（Tool）对象。让我详细解释一下：
 
 1. `@tool` 是什么？
@@ -193,12 +242,17 @@ mcp.run(transport="stdio")  # 使用标准输入输出作为通信通道
 
 7. 为什么需要这样设计？
 
-1. **解耦**：将功能作为独立服务运行
+ * **解耦**：将功能作为独立服务运行
 
-2. **跨语言支持**：任何能处理 stdio/HTTP 的语言都可调用
+ * **跨语言支持**：任何能处理 stdio/HTTP 的语言都可调用
 
-3. **模型隔离**：避免将模型直接加载到主应用
+ * **模型隔离**：避免将模型直接加载到主应用
 
-4. **可扩展性**：轻松添加新工具而不影响主程序
+ * **可扩展性**：轻松添加新工具而不影响主程序
 
 总之，`@mcp.tool()` 是 MCP 框架中用于声明和暴露远程可调用服务的核心机制，它让普通 Python 函数成为可通过标准协议访问的微服务。
+
+## Reference
+* https://python.langchain.com/docs/concepts/tools
+* https://langchain-ai.github.io/langgraph/agents/tools
+* https://github.com/langchain-ai/langchain/blob/9a78246d29d07fa7806e9426efd0ef8e82b07394/libs/core/langchain_core/tools/simple.py#L33
