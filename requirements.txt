@@ -5,5 +5,5 @@ langchain-openai
 openai
 ipython
 langchain_community
-langchain-mcp-adapters
+langchain_mcp_adapters
 mcp

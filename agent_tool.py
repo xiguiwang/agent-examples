@@ -20,8 +20,9 @@ tools = [add, multiply]
 
 inference_server_url = "http://localhost:8000/v1"
 
+model="Qwen/Qwen3-4B"
 llm = ChatOpenAI(
-    model="Qwen/Qwen2.5-7B-Instruct",
+    model=model,
     openai_api_key="EMPTY",
     openai_api_base=inference_server_url,
     max_tokens=256,

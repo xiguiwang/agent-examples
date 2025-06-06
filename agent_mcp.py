@@ -24,8 +24,8 @@ class State(TypedDict):
 
 graph_builder = StateGraph(State)
 
-#MODEL="Qwen/Qwen3-4B"
-MODEL="Qwen/Qwen2.5-7B-Instruct"
+MODEL="Qwen/Qwen3-4B"
+#MODEL="Qwen/Qwen2.5-7B-Instruct"
 
 class BasicToolNode:
     """A node that runs the tools requested in the last AIMessage."""
@@ -83,12 +83,15 @@ def get_weather(city: str) -> str:
     return f"It's always sunny in {city}!"
 
 from langchain_mcp_adapters.client import MultiServerMCPClient
+
+mcp_server_file="/disk/agent-examples/mcp_server.py"
+
 client = MultiServerMCPClient(
     {
         "pyfile_count": {
             "command": "python",
             # Replace with absolute path to your math_server.py file
-            "args": ["/ws1/xiguiwang/agent-examples/mcp_server.py"],
+            "args": [ mcp_server_file],
             "transport": "stdio",
         }
     }
