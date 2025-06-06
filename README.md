@@ -4,12 +4,12 @@
 
 AI agent
 
-[Agent implementation in Langchain & Langgraph](agent_and_langgraph.md)
+[Agent implementation in Langchain & Langgraph](./doc/agent_and_langgraph.md)
 
 ## Prerqueist
 
 Set up vLLM service
-[vLLM setupt](vLLM_setup.md)
+[vLLM setupt](./doc/vLLM_setup.md)
 
 ## AI Agent Example
 
