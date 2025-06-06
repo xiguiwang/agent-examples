@@ -1,7 +1,9 @@
-lainchain 
-llanggraph
+langchain
+langgraph
 langchain_google_community
 langchain-openai
 openai
 ipython
 langchain_community
+langchain-mcp-adapters
+mcp

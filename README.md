@@ -1,5 +1,13 @@
 # This repo ceate AI-agent examples based on my Local LLM services
 
+## Overview agent
+
+AI agent
+
+[Agent implementation in Langchain & Langgraph](Agent-and-Graph.md)
+
+## Prerqueist
+
 Set up vLLM service
 [vLLM setupt](vLLM_setup.md)
 
@@ -15,6 +23,8 @@ pip install lainchain langchain_community
 pip install lainchain langchain-openai
 pip install openai
 pip install ipython
+pip install langchain-mcp-adapters
+pip install mcp
 ```
 
 2. create graph state with node
@@ -27,3 +37,4 @@ python agent_1.py
 ## Reference
 * https://langchain-ai.github.io/langgraph/
 * https://langchain-ai.github.io/langgraph/tutorials/get-started/1-build-basic-chatbot
+* https://github.com/modelcontextprotocol/python-sdk.git

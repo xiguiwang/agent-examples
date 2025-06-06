@@ -7,9 +7,12 @@ from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import InMemorySaver
 
+#model="Qwen/Qwen2.5-7B-Instruct"
+model = "Qwen/Qwen3-4B"
+
 inference_server_url = "http://localhost:8000/v1"
 llm = ChatOpenAI(
-    model="Qwen/Qwen3-4B",
+    model=model,
     openai_api_key="EMPTY",
     openai_api_base=inference_server_url,
     max_tokens=32,

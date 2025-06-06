@@ -4,23 +4,48 @@ from langgraph.graph import StateGraph, START
 from langgraph.graph.message import add_messages
 
 from langchain_openai import ChatOpenAI
+from langchain_core.tools import tool
+from langgraph.graph import END
 
 import json
 from langchain_core.messages import ToolMessage
+
+import inspect
+
+def dump_func_line():
+    print(inspect.stack()[1].function) #, inspect.currentframe().f_lineno)
+
+class State(TypedDict):
+    # Messages have the type "list". The `add_messages` function
+    # in the annotation defines how this state key should be updated
+    # (in this case, it appends messages to the list, rather than overwriting them)
+    messages: Annotated[list, add_messages]
+
+graph_builder = StateGraph(State)
+
+MODEL="Qwen/Qwen3-4B"
+#MODEL="Qwen/Qwen2.5-7B-Instruct"
 
 class BasicToolNode:
     """A node that runs the tools requested in the last AIMessage."""
 
     def __init__(self, tools: list) -> None:
+        dump_func_line()
+        print("tools", tools)
         self.tools_by_name = {tool.name: tool for tool in tools}
+        print("toos by name:", self.tools_by_name)
 
     def __call__(self, inputs: dict):
+        dump_func_line()
         if messages := inputs.get("messages", []):
             message = messages[-1]
+            print("messages:", messages)
         else:
             raise ValueError("No message found in input")
         outputs = []
+
         for tool_call in message.tool_calls:
+            print("tool_call message.tool_calls:", tool_call)
             tool_result = self.tools_by_name[tool_call["name"]].invoke(
                 tool_call["args"]
             )
@@ -31,27 +56,22 @@ class BasicToolNode:
                     tool_call_id=tool_call["id"],
                 )
             )
+        print("output messages:", outputs)  
         return {"messages": outputs}
-
-class State(TypedDict):
-    # Messages have the type "list". The `add_messages` function
-    # in the annotation defines how this state key should be updated
-    # (in this case, it appends messages to the list, rather than overwriting them)
-    messages: Annotated[list, add_messages]
-
-graph_builder = StateGraph(State)
 
 inference_server_url = "http://localhost:8000/v1"
 llm = ChatOpenAI(
-    model="Qwen/Qwen3-4B",
+    model=MODEL,
     openai_api_key="EMPTY",
     openai_api_base=inference_server_url,
     max_tokens=1024,
     temperature=0,
 )
 
+@tool
 def get_weather(city: str) -> str:  
     """Get weather for a given city."""
+    dump_func_line()
     return f"It's always sunny in {city}!"
 
 tools=[get_weather]
@@ -62,8 +82,17 @@ graph_builder.add_node("tools", tool_node)
 llm_with_tools = llm.bind_tools(tools)
 
 def chatbot(state: State):
+    dump_func_line()
+    print("State message:", state["messages"], "*****\n")
     #return {"messages": [llm.invoke(state["messages"])]}
-    return {"messages": [llm_with_tools.invoke(state["messages"])]}
+    output_messages = {"messages": [llm_with_tools.invoke(state["messages"])]}
+    print("output_messages", output_messages)
+    return output_messages
+
+# The first argument is the unique node name
+# The second argument is the function or object that will be called whenever
+# the node is used.
+graph_builder.add_node("chatbot", chatbot)
 
 def route_tools(
     state: State,
@@ -78,8 +107,12 @@ def route_tools(
         ai_message = messages[-1]
     else:
         raise ValueError(f"No messages found in input state to tool_edge: {state}")
+
+    dump_func_line()
+    print("AI message:", ai_message, "*******")
     if hasattr(ai_message, "tool_calls") and len(ai_message.tool_calls) > 0:
         return "tools"
+    print("*** route to END ***")
     return END
 
 # The `tools_condition` function returns "tools" if the chatbot asks to use a tool, and "END" if
@@ -98,11 +131,6 @@ graph_builder.add_conditional_edges(
 graph_builder.add_edge("tools", "chatbot")
 graph_builder.add_edge(START, "chatbot")
 
-# The first argument is the unique node name
-# The second argument is the function or object that will be called whenever
-# the node is used.
-graph_builder.add_node("chatbot", chatbot)
-
 graph = graph_builder.compile()
 
 
@@ -115,9 +143,13 @@ except Exception:
     pass
 
 def stream_graph_updates(user_input: str):
+    dump_func_line()
     for event in graph.stream({"messages": [{"role": "user", "content": user_input}]}):
+        print("event:", event, "event values", event.values())
         for value in event.values():
+            dump_func_line()
             print("Assistant:", value["messages"][-1].content)
+            dump_func_line()
 
 while True:
     try:

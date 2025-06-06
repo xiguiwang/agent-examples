@@ -25,6 +25,55 @@ docker run -it \
              vllm-xpu-env
 ```
 
+### Build vLLM for Nvidia GPU docker images
+
+build vLLM for NVidia GPU docker image
+```
+DOCKER_BUILDKIT=1 docker build . \
+    --target vllm-openai \
+    --tag vllm/vllm-openai \
+    --file docker/Dockerfile
+
+or
+
+DOCKER_BUILDKIT=1 docker build  \
+    --build-arg max_jobs=64 --build-arg nvcc_threads=32
+    --build-arg https_proxy=$https_proxy \
+    --build-arg http_proxy=$http_proxy \
+    --build-arg torch_cuda_arch_list="" \
+    --target vllm-openai  \
+    --tag vllm/vllm-openai \
+    --file docker/Dockerfile .
+```
+By default vLLM will build for all GPU types for widest distribution. If you are just building for the current GPU type the machine is running on, you can add the argument --build-arg torch_cuda_arch_list="" for vLLM to find the current GPU type and build for that.
+
+* https://docs.vllm.ai/en/stable/deployment/docker.html
+
+## Pit fall of NV Tesla V100
+```
+1.
+* packages/torch/cuda/__init__.py:262: UserWarning:
+vllm-openai  |     Found GPU1 Tesla V100-PCIE-32GB which is of cuda capability 7.0.
+vllm-openai  |     PyTorch no longer supports this GPU because it is too old.
+vllm-openai  |     The minimum cuda capability supported by this library is 7.5.
+vllm-openai  |
+vllm-openai  |   warnings.warn(
+vllm-openai  | INFO 06-02 23:13:06 [worker.py:109] Profiling enabled. Traces will be saved to: /mnt
+vllm-openai  | INFO 06-02 23:13:07 [parallel_state.py:1064] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+vllm-openai  | INFO 06-02 23:13:07 [model_runner.py:1170] Starting to load model Qwen/Qwen3-8B...
+vllm-openai  | Process SpawnProcess-1:
+vllm-openai  | ERROR 06-02 23:13:07 [engine.py:457] CUDA error: no kernel image is available for execution on the device 
+
+
+2 * bfloat16 is not supported
+packages/vllm/worker/worker.py", line 140, in init_device
+vllm-openai  |     _check_if_gpu_supports_dtype(self.model_config.dtype)
+vllm-openai  |   File "/usr/local/lib/python3.12/dist-packages/vllm/worker/worker.py", line 479, in _check_if_gpu_supports_dtype
+vllm-openai  |     raise ValueError(
+vllm-openai  | ValueError: Bfloat16 is only supported on GPUs with compute capability of at least 8.0. Your Tesla V100-PCIE-32GB GPU has compute capability 7.0. You can use float16 instead by explicitly setting thedtype flag in CLI, for example: --dtype=half.
+Gracefully stopping... (press Ctrl+C again to force)
+```
+
 ### Start vLLM for Agent
 
 Follow the instructions provided in the README of Qwen2 for deploying an OpenAI-compatible API service. Specifically, consult the vLLM section for high-throughput GPU deployment or the Ollama section for local CPU (+GPU) deployment. For the QwQ and Qwen3 model, it is recommended to add the --enable-reasoning and --reasoning-parser deepseek_r1 parameters when starting the service. Do not add the --enable-auto-tool-choice and --tool-call-parser hermes parameters, as Qwen-Agent will parse the tool outputs from vLLM on its own.
