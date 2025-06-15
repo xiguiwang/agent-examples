@@ -1,0 +1,17 @@
+services:
+  db:
+    image: mysql:8.0.42-debian
+    container_name: mysql-db-service
+    restart: always
+    ports:
+      - "9000:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: mysql-pwd
+      no_proxy: ${no_proxy}
+      http_proxy: ${http_proxy}
+      https_proxy: ${https_proxy}
+    # (this is just an example, not intended to be a production configuration)
+
+networks:
+  default:
+    driver: bridge
