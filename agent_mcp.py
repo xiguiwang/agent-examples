@@ -84,7 +84,7 @@ def get_weather(city: str) -> str:
 
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
-mcp_server_file="/disk/agent-examples/mcp_server.py"
+mcp_server_file="/disk/agent-examples/py_count.py"
 
 client = MultiServerMCPClient(
     {

@@ -14,9 +14,12 @@ from langgraph.checkpoint.memory import MemorySaver
 from langchain_mcp_adapters.client import MultiServerMCPClient
 #from langgraph.prebuilt import create_react_agent
 
+from langchain_core.runnables import Runnable
 import asyncio
 
 import inspect
+global llm_with_tools
+
 def dump_func_line():
     print(inspect.stack()[1].function) #, inspect.currentframe().f_lineno)
 
@@ -25,7 +28,8 @@ client = MultiServerMCPClient(
         "pyfile_count": {
             "command": "python",
             # Replace with absolute path to your math_server.py file
-            "args": ["/ws1/xiguiwang/agent-examples/py_count.py"],
+            "args": ["/disk/agent-examples/py_count.py"],
+            #"args": ["/ws1/xiguiwang/agent-examples/py_count.py"],
             "transport": "stdio",
         }
     }
@@ -45,8 +49,8 @@ class State(TypedDict):
     messages: Annotated[list, add_messages]
 
 
-#MODEL="Qwen/Qwen3-4B"
-MODEL="Qwen/Qwen2.5-7B-Instruct"
+MODEL="Qwen/Qwen3-4B"
+#MODEL="Qwen/Qwen2.5-7B-Instruct"
 
 class BasicToolNode:
     """A node that runs the tools requested in the last AIMessage."""
@@ -55,7 +59,7 @@ class BasicToolNode:
         dump_func_line()
         self.tools_by_name = {tool.name: tool for tool in tools}
 
-    def __call__(self, inputs: dict):
+    async def __call__(self, inputs: dict):
         dump_func_line()
         if messages := inputs.get("messages", []):
             message = messages[-1]
@@ -65,9 +69,9 @@ class BasicToolNode:
         outputs = []
 
         for tool_call in message.tool_calls:
-            tool_result = self.tools_by_name[tool_call["name"]].invoke(
+            tool_result = await self.tools_by_name[tool_call["name"]].ainvoke(
                 tool_call["args"]
-            )
+                )
             outputs.append(
                 ToolMessage(
                     content=json.dumps(tool_result),
@@ -77,6 +81,20 @@ class BasicToolNode:
             )
         print("output messages:", outputs)  
         return {"messages": outputs}
+
+class AsyncToolNode(Runnable):
+    """Wraps an async BasicToolNode so LangGraph can call it via ainvoke."""
+    def __init__(self, tools):
+        self.node = BasicToolNode(tools)
+
+    async def ainvoke(self, input, config=None):
+        print("✅ Running async ainvoke on AsyncToolNode")
+        return await self.node(input)
+
+    def invoke(self, input, config=None):
+        # Optional: fallback for sync contexts (not always safe)
+        print("⚠️ Warning: Sync invoke on async node - prefer ainvoke")
+        return asyncio.run(self.node(input))
 
 @tool
 def human_assistance(query: str) -> str:
@@ -92,6 +110,7 @@ def get_weather(city: str) -> str:
     return f"It's always sunny in {city}!"
 
 def chatbot(state: State):
+    global llm_with_tools
     dump_func_line()
     #return {"messages": [llm.invoke(state["messages"])]}
     output_messages = {"messages": [llm_with_tools.invoke(state["messages"])]}
@@ -134,6 +153,7 @@ async def get_mcp_tools():
     return mcp_tools
 
 def create_graph_agent():
+    global llm_with_tools
     memory = MemorySaver()
     graph_builder = StateGraph(State)
 
@@ -151,7 +171,8 @@ def create_graph_agent():
     #tools=[get_weather, mcp_tools] # human_assistance] #, mcp_tools]
     tools = [get_weather] + (mcp_tools or [])
 
-    tool_node = BasicToolNode(tools=tools)
+    #tool_node = BasicToolNode(tools=tools)
+    tool_node = AsyncToolNode(tools)
     graph_builder.add_node("tools", tool_node)
 
     llm_with_tools = llm.bind_tools(tools)
@@ -184,17 +205,20 @@ def create_graph_agent():
 
 def stream_graph_updates(graph, user_input: str):
     dump_func_line()
-    #config = {"configurable": {"thread_id": "1"}}
+    config = {"configurable": {"thread_id": "1"}}
     events = graph.stream(
         {"messages": [{"role": "user", "content": user_input}]},
-        #config,
-        #stream_mode="values",
+        config,
+        stream_mode="values",
     )
     print("event:", events)
+    #import pdb
+    #pdb.set_trace()
     for event in events:
         for value in event.values():
             dump_func_line()
-            print("Assistant:", value["messages"][-1].content)
+            #print("Assistant:", value["messages"][-1].content)
+            print("Assistant:", value[-1].content)
         #print("Assistant:", event["messages"][-1].pretty_print())
 
 def main():
