@@ -7,3 +7,4 @@ ipython
 langchain_community
 langchain_mcp_adapters
 mcp
+mysql-connector-python

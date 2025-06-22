@@ -4,7 +4,7 @@ services:
     container_name: mysql-db-service
     restart: always
     ports:
-      - "9000:3306"
+      - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: mysql-pwd
       no_proxy: ${no_proxy}

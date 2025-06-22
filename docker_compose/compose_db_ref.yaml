@@ -1,0 +1,24 @@
+services:
+  db:
+    image: mysql:8.0.42-debian
+    container_name: mysql-db-service
+    restart: unless-stopped  # 比 always 更安全
+    ports:
+      - "3306:3306"  # 修正端口映射
+    environment:
+      MYSQL_ROOT_PASSWORD: mysql-pwd
+      MYSQL_DATABASE: app_db  # 添加默认数据库
+    volumes:
+      - mysql_data:/var/lib/mysql  # 添加持久化存储
+    healthcheck:  # 添加健康检查
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql_data:  # 声明持久化卷
+
+networks:
+  default:
+    driver: bridge
