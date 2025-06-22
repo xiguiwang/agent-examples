@@ -10,7 +10,7 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("mcp_sql_tools")
 
 async def database_query() -> List[Dict[str, Any]]:
-    """ query database query and return formated result """
+    """ query database and return formated result """
     """执行数据库查询并返回格式化结果"""
     config = {
         'user': 'root',
@@ -24,7 +24,7 @@ async def database_query() -> List[Dict[str, Any]]:
         cnx = mysql.connector.connect(**config)
         if cnx and cnx.is_connected():
             with cnx.cursor(dictionary=True) as cursor:
-                cursor.execute("SELECT * FROM Persons LIMIT 5")
+                cursor.execute("SELECT * FROM Persons_InfoTb LIMIT 5")
                 rows = cursor.fetchall()
                 for row in rows:
                     print(row)

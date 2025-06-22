@@ -31,6 +31,11 @@ client = MultiServerMCPClient(
             "args": ["/disk/agent-examples/py_count.py"],
             #"args": ["/ws1/xiguiwang/agent-examples/py_count.py"],
             "transport": "stdio",
+        },
+        "Sql-Database": {
+            "command": "python",
+            "args": ["/disk/agent-examples/tools/sql_mcp.py"],
+            "transport": "stdio",
         }
     }
 )

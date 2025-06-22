@@ -48,6 +48,7 @@ Start `MySql Workbench`
 
 ![Sql access in Workbench](./accessory/workbench_sql.png)
 
+```
 CREATE DATABASE testDB;
 show databases;
 use testDB;
@@ -63,3 +64,4 @@ INSERT INTO Persons_InfoTb VALUES (1, 'Zhang', 'San', 45);
 INSERT INTO Persons_InfoTb VALUES (2, 'Li', 'Si', 35);
 show tables;
 select * from Persons;
+```
