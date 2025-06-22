@@ -70,9 +70,12 @@ or
 
 Workbench: 
 Start `MySql Workbench`
+![Workbench](./workbench_start.png)
 
 
 ## Sql Command
+
+![Workbench](./workbench_sql.png)
 
 CREATE DATABASE testDB;
 show databases;
