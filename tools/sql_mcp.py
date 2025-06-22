@@ -16,7 +16,7 @@ async def database_query() -> List[Dict[str, Any]]:
         'user': 'root',
         'password' : 'mysql-pwd',
         'host' : '127.0.0.1',
-        'port' : 9000,
+        'port' : 3306,
         'database': 'testDB'
     }
 
