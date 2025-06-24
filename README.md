@@ -34,6 +34,13 @@ pip install langgraph
 python agent_1.py
 ```
 
+3. Agent integrated MCP tools to query database, list files in directory, simulate query weather, and memroy tools.
+
+```
+python agent_all.py
+```
+![Agent all](./tools/accessory/output_1080.gif)
+
 ## Reference
 * https://langchain-ai.github.io/langgraph/
 * https://langchain-ai.github.io/langgraph/tutorials/get-started/1-build-basic-chatbot
