@@ -8,10 +8,10 @@ client = OpenAI(
     base_url=openai_api_base,
 )
 
-model="Qwen/Qwen3-4B",
+model="Qwen/Qwen3-4B"
+#model="Qwen/Qwen2.5-7B-Instruct"
 
 chat_response = client.chat.completions.create(
-    #model="Qwen/Qwen2.5-7B-Instruct",
     model=model,
     messages=[
         {"role": "system", "content": "You are a helpful assistant."},
