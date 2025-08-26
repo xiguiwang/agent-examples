@@ -10,7 +10,12 @@ Agents, on the other hand, are systems where LLMs dynamically direct their own p
 
 ## How Langgraph Implementation of Agent
 
-This is a code snap of langgraph agent  
+At its core, LangGraph models agent workflows as graphs.
+
+The grap is composed of nodes and edges. Simply speaking: Nodes do the work, edges tell what to do next.
+
+* To get an idea of the graph and agent, here is code snap of langgraph agent:
+There is a `START` edge (entry point) and a `chatbot` node in the graph.
 
 ```Python
 from typing import Annotated
@@ -51,11 +56,7 @@ graph_builder.add_edge(START, "chatbot")
 graph = graph_builder.compile()
 ```
 
-### What is Graph
-
-At its core, LangGraph models agent workflows as graphs.
-
-### Components of Graph
+### Components of Agent/Graph
  You define the behavior of your agents using three key components:
 
 1. **State**: A shared data structure that represents the current snapshot of your application. It can be any Python type, but is typically a `TypedDict` or `Pydantic BaseModel`.
@@ -70,23 +71,25 @@ By composing `Nodes` and `Edges`, you can create complex, looping workflows that
 
 In short: nodes do the work, edges tell what to do next.
 
-### Workflow Exectuion throught Graph
+### Understand the Workflow Exectuion throught Graph
 
 LangGraph's underlying graph algorithm uses **message passing** to define a general program. When a Node completes its operation, it sends messages along one or more edges to other node(s). These recipient nodes then execute their functions, pass the resulting messages to the next set of nodes, and the process continues. Inspired by Google's Pregel system, the program proceeds in discrete "super-steps."
 
 A super-step can be considered a single iteration over the graph nodes. Nodes that run in parallel are part of the same super-step, while nodes that run sequentially belong to separate super-steps. At the start of graph execution, all nodes begin in an inactive state. A node becomes active when it receives a new message (state) on any of its incoming edges (or "channels"). The active node then runs its function and responds with updates. At the end of each super-step, nodes with no incoming messages vote to halt by marking themselves as inactive. The graph execution terminates when all nodes are inactive and no messages are in transit.
 
-Compiling your graph
+### Compiling your Graph
+
 To build your graph, you first define the state, you then add nodes and edges, and then you compile it. What exactly is compiling your graph and why is it needed?
 
-Compiling is a pretty simple step. It provides a few basic checks on the structure of your graph (no orphaned nodes, etc). It is also where you can specify runtime args like checkpointers and breakpoints. You compile your graph by just calling the .compile method:
+Compiling is a pretty simple step. It provides a few basic checks on the structure of your graph (no orphaned nodes, etc). It is also where you can specify runtime args like checkpointers and breakpoints. You compile your graph by just calling the `.compile` method:
 
 graph = graph_builder.compile(...)
-You MUST compile your graph before you can use it.
+
+You **MUST** compile your graph before you can use it.
 
 ### State
 
-The first thing you do when you define a graph is define the State of the graph. The State consists of the schema of the graph as well as reducer functions which specify how to apply updates to the state. The schema of the State will be the input schema to all Nodes and Edges in the graph, and can be either a TypedDict or a Pydantic model. All Nodes will emit updates to the State which are then applied using the specified reducer function.
+The first thing you do when you define a graph is define the State of the graph. The State consists of the schema of the graph as well as reducer functions which specify how to apply updates to the state. The schema of the state will be the input schema to all Nodes and Edges in the graph, and can be either a TypedDict or a Pydantic model. All Nodes will emit updates to the State which are then applied using the specified reducer function.
 
 ### Working with Messages in Graph State
 
