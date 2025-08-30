@@ -5,7 +5,7 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langchain_openai import ChatOpenAI
 from langchain_core.tools import tool
-from langchain_core.messages import ToolMessage
+from langchain_core.messages import ToolMessage, AIMessage
 
 import json
 
@@ -21,7 +21,8 @@ import inspect
 global llm_with_tools
 
 def dump_func_line():
-    print(inspect.stack()[1].function) #, inspect.currentframe().f_lineno)
+    #print(inspect.stack()[1].function) #, inspect.currentframe().f_lineno)
+    return
 
 client = MultiServerMCPClient(
     {
@@ -66,9 +67,11 @@ class BasicToolNode:
 
     async def __call__(self, inputs: dict):
         dump_func_line()
+        #import pdb
+        #pdb.set_trace()
         if messages := inputs.get("messages", []):
             message = messages[-1]
-            print("messages:", messages)
+            #print("messages:", messages)
         else:
             raise ValueError("No message found in input")
         outputs = []
@@ -84,7 +87,7 @@ class BasicToolNode:
                     tool_call_id=tool_call["id"],
                 )
             )
-        print("output messages:", outputs)  
+        #print("output messages:", outputs)
         return {"messages": outputs}
 
 class AsyncToolNode(Runnable):
@@ -93,12 +96,12 @@ class AsyncToolNode(Runnable):
         self.node = BasicToolNode(tools)
 
     async def ainvoke(self, input, config=None):
-        print("✅ Running async ainvoke on AsyncToolNode")
+        #print("✅ Running async ainvoke on AsyncToolNode")
         return await self.node(input)
 
     def invoke(self, input, config=None):
         # Optional: fallback for sync contexts (not always safe)
-        print("⚠️ Warning: Sync invoke on async node - prefer ainvoke")
+        #print("⚠️ Warning: Sync invoke on async node - prefer ainvoke")
         return asyncio.run(self.node(input))
 
 @tool
@@ -119,7 +122,7 @@ def chatbot(state: State):
     dump_func_line()
     #return {"messages": [llm.invoke(state["messages"])]}
     output_messages = {"messages": [llm_with_tools.invoke(state["messages"])]}
-    print("output_messages", output_messages)
+    #print("output_messages", output_messages)
     return output_messages
 
 def route_tools(
@@ -137,10 +140,10 @@ def route_tools(
         raise ValueError(f"No messages found in input state to tool_edge: {state}")
 
     dump_func_line()
-    print("AI message:", ai_message, "*******")
+    #print("AI message:", ai_message, "*******")
     if hasattr(ai_message, "tool_calls") and len(ai_message.tool_calls) > 0:
         return "tools"
-    print("*** route to END ***")
+    #print("*** route to END ***")
     return END
 
 '''
@@ -216,15 +219,11 @@ def stream_graph_updates(graph, user_input: str):
         config,
         stream_mode="values",
     )
-    print("event:", events)
-    #import pdb
-    #pdb.set_trace()
+
     for event in events:
-        for value in event.values():
-            dump_func_line()
-            #print("Assistant:", value["messages"][-1].content)
-            print("Assistant:", value[-1].content)
-        #print("Assistant:", event["messages"][-1].pretty_print())
+        event_message = event["messages"][-1]
+        if isinstance(event_message, AIMessage):
+            print(event_message.content)
 
 def main():
     graph = create_graph_agent()

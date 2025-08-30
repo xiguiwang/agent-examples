@@ -15,6 +15,7 @@ At its core, LangGraph models agent workflows as graphs.
 The grap is composed of nodes and edges. Simply speaking: Nodes do the work, edges tell what to do next.
 
 * To get an idea of the graph and agent, here is code snap of langgraph agent:
+
 There is a `START` edge (entry point) and a `chatbot` node in the graph.
 
 ```Python
@@ -101,12 +102,14 @@ In LangGraph, nodes are typically python functions (sync or async) where the fir
 
 ### Edges
 
+ *Noted* edges are functions.
+
 Edges define how the logic is routed and how the graph decides to stop. This is a big part of how your agents work and how different nodes communicate with each other. There are a few key types of edges:
 
 * `Normal Edges`: Go directly from one node to the next.
-* `Conditional Edges`: Call a function to determine which node(s) to go to next.
+* `Conditional Edges`: Call a function to determine which node(s) to go next.
 * `Entry Point`: Which node to call first when user input arrives.
-* `Conditional Entry Poin`t: Call a function to determine which node(s) to call first when user input arrives.
+* `Conditional Entry Point`: Call a function to determine which node(s) to call first when user input arrives.
 
 A node can have MULTIPLE outgoing edges. If a node has multiple out-going edges, all of those destination nodes will be executed in parallel as a part of the next superstep.
 

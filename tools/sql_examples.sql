@@ -1,9 +1,6 @@
-use testDB;
-show tables;
-
-CREATE DATABASE testDB;
+#CREATE DATABASE testDB;
 show databases;
-use TestDB;
+use testDB;
 CREATE TABLE Persons_InfoTb (
          ID int NOT NULL,
          LastName varchar(255) NOT NULL,
@@ -14,5 +11,6 @@ CREATE TABLE Persons_InfoTb (
 
 INSERT INTO Persons_InfoTb VALUES (1, 'Zhang', 'San', 45);
 INSERT INTO Persons_InfoTb VALUES (2, 'Li', 'Si', 35);
+INSERT INTO Persons_InfoTb VALUES (3, 'Xigui', 'Wang', 50);
 show tables;
 select * from Persons_InfoTb;
