@@ -3,11 +3,13 @@
 ## Overview agent
 
 ### Chain of Thourght
-In CoT [1], it combines the strengths of these two ideas in a way that avoids their limitations.
+In CoT [1], "we combines the strengths of these two ideas in a way that avoids their limitations.
 Specifically, we explore the ability of language models to perform few-shot prompting for reasoning
 tasks, given a prompt that consists of triples: hinput, chain of thought, outputi. A chain of thought is
 a series of intermediate natural language reasoning steps that lead to the final output, and we refer to
-this approach as chain-of-thought prompting. An example prompt is shown in Figure 1.
+this approach as chain-of-thought prompting. An example prompt is shown in Figure 1."
+
+The goal of this paper is to endow language models with the ability to generate a similar chain of thought—a coherent series of intermediate reasoning steps that lead to the final answer for a problem.
 
 ![Chain of Thought prompt](./tools/accessory/ChainofThought.png)
 
