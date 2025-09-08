@@ -170,7 +170,7 @@ def create_graph_agent():
         model=MODEL,
         openai_api_key="EMPTY",
         openai_api_base=inference_server_url,
-        max_tokens=1024,
+        max_tokens=2048,
         temperature=0,
     )
 

@@ -10,8 +10,8 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("mcp_sql_tools")
 
 async def database_query() -> List[Dict[str, Any]]:
-    """ query database and return formated result """
-    """执行数据库查询并返回格式化结果"""
+    """ query person inforamation database and return formated result """
+    """查询数据库并返回格式化结果"""
     config = {
         'user': 'root',
         'password' : 'mysql-pwd',
@@ -38,9 +38,9 @@ async def database_query() -> List[Dict[str, Any]]:
 
 # MCP工具封装函数
 @mcp.tool()
-async def database_query_tool() -> Dict[str, Any]:
-    """ execute database query and return formated result """
-    """执行数据库查询并返回格式化结果"""
+async def database_person_info_query() -> Dict[str, Any]:
+    """ query person infomation from database and return format result """
+    """ 从数据库查询个人信息并返回格式化结果"""
     query_result = await database_query()
 
     return {
