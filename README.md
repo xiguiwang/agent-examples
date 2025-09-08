@@ -2,7 +2,17 @@
 
 ## Overview agent
 
-AI agent
+### Chain of Thourght
+In CoT [1], it combines the strengths of these two ideas in a way that avoids their limitations.
+Specifically, we explore the ability of language models to perform few-shot prompting for reasoning
+tasks, given a prompt that consists of triples: hinput, chain of thought, outputi. A chain of thought is
+a series of intermediate natural language reasoning steps that lead to the final output, and we refer to
+this approach as chain-of-thought prompting. An example prompt is shown in Figure 1.
+
+![Chain of Thought prompt](./tools/accessory/ChainofThought.png)
+
+
+### AI agent Implementation by Langgraph
 
 [Agent implementation in Langchain & Langgraph](./doc/agent_and_langgraph.md)
 
@@ -42,6 +52,7 @@ python agent_all.py
 ![Agent all](./tools/accessory/output_1080.gif)
 
 ## Reference
+* https://arxiv.org/pdf/2201.11903 Chain-of-Thought Prompting Elicits Reasoning in Large Language Models
 * https://langchain-ai.github.io/langgraph/
 * https://langchain-ai.github.io/langgraph/tutorials/get-started/1-build-basic-chatbot
 * https://github.com/modelcontextprotocol/python-sdk.git
