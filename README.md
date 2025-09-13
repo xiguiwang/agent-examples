@@ -13,6 +13,8 @@ The goal of this paper is to endow language models with the ability to generate 
 
 ![Chain of Thought prompt](./tools/accessory/ChainofThought.png)
 
+![Chain of Thought Examples](./tools/accessory/ChainofThoughtExamples.png)
+
 
 ### AI agent Implementation by Langgraph
 

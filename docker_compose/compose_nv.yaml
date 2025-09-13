@@ -7,7 +7,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - "/disk/.cache/huggingface:/root/.cache/huggingface"
+      - "/ubuntu24/home/xwang/.cache/huggingface:/root/.cache/huggingface"
       - "/dev/dri/by-path:/dev/dri/by-path"
     shm_size: 1g
     deploy:
