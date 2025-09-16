@@ -31,3 +31,7 @@ services:
     ]
     ports:
       - 8012:8000
+
+networks:
+  default:
+    driver: bridge
