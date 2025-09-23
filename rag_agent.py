@@ -10,11 +10,13 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_openai import ChatOpenAI
 
-from langgraph.graph import MessagesState
+from langgraph.graph import StateGraph, MessagesState, START, END
 
 from langchain_core.vectorstores import InMemoryVectorStore
 from langchain.tools.retriever import create_retriever_tool
 
+from langgraph.prebuilt import ToolNode
+from langgraph.prebuilt import tools_condition
 
 #urls = [
 #    "https://langchain-ai.github.io/langgraph/tutorials/rag/langgraph_agentic_rag/",
@@ -38,8 +40,8 @@ def embedding_document(docs: List[Document], embeddings):
     #text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
     #    chunk_size=256, chunk_overlap=50)
     text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-        chunk_size=512,  # 增大分块大小
-        chunk_overlap=30,  # 减少重叠
+        chunk_size=256,  # 增大分块大小
+        chunk_overlap=50,  # 减少重叠
         separators=["\n\n", "\n", "。", "！", "？", "；", "，", "、", ""]  # 明确指定分隔符
     )
     doc_splits = text_splitter.split_documents(docs)
@@ -75,10 +77,24 @@ def create_llm_model(api_key, url, model):
     )
     return llm
 
-def generate_query_or_respond(llm_with_tools, state: MessagesState):
-    response = llm_with_tools.invoke(state["messages"])
-    return {"messages": [response]}
+from langchain.prompts import ChatPromptTemplate
+from langchain.schema import SystemMessage, HumanMessage
+global llm_with_tools
+def generate_query_or_respond(state: MessagesState):
+    global llm_with_tools
 
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", "你是个有用的小帮手，请根据上下文提供的材料回答用户问题，不使用其它知识。如果上下文不提供相关信息， 回答无相关信息。"),
+        ("human", "{input}")
+    ])
+
+    chain = prompt | llm_with_tools
+    if llm_with_tools is not None:
+        print("LLM_NODE INPUT:", state["messages"])
+        response = chain.invoke(state["messages"])
+        return {"messages": [response]}
+    else:
+        return {"messages": "Null"}
 
 def main():
     doc_list = preprocess_document("ticket.txt")
@@ -102,13 +118,35 @@ def main():
     model="Qwen/Qwen3-4B"
     llm_model = create_llm_model("EMPTY", server_url, model)
 
+    global llm_with_tools
     llm_with_tools = llm_model.bind_tools([retriever_tool])
 
-    input_data = { "messages" :[ {"role":"user", "content":"有哪些购买火车票的方式"},
-                      {"role":"system", "content":"你是个有用的小帮手，请根据上下文类容回答用户问题。如果上下文不提供相关信息， 回答无相关信息。"}] }
+    input_data = { "messages" :[ {"role":"user", "content":"有哪些购买火车票的方式"} ] }
 
-    output = generate_query_or_respond(llm_with_tools, input_data)
+    output = generate_query_or_respond(input_data)
     print(output["messages"][-1].pretty_print())
+
+    graph_builder = StateGraph(MessagesState)
+    graph_builder.add_node("llm", generate_query_or_respond)
+    graph_builder.add_node("retrieve", ToolNode([retriever_tool]))
+    #graph_builder.add_node("retrieve", rewrite_query)
+
+    graph_builder.add_edge(START, "llm")
+    graph_builder.add_conditional_edges("llm",
+                                    tools_condition,
+                                    { "tools":"retrieve",
+                                        END : END }
+                                    )
+    graph_builder.add_edge("retrieve", "llm")
+
+    agent_app = graph_builder.compile()
+
+    chunks = agent_app.stream({"messages": [ {"role":"user", "content": "有哪些购买火车票的方式？"}]})
+    for chunk in chunks:
+        for node, update in chunk.items():
+            print("Update form node", node)
+            update["messages"][-1].pretty_print()
+            print("\n\n")
 
     return
 
