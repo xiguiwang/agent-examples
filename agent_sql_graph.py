@@ -10,10 +10,36 @@ from langgraph.graph import END
 import json
 from langchain_core.messages import ToolMessage
 
+from langchain_community.utilities import SQLDatabase
+from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
+
 import inspect
 
 def dump_func_line():
     print(inspect.stack()[1].function) #, inspect.currentframe().f_lineno)
+
+user='root'
+password='mysql-pwd'
+host = "127.0.0.1"
+port = 3306
+database = "foodDB"
+
+PREFIX="""You are an agent designed to interact with a SQL database.
+  Given an input question, create a syntactically correct {dialect} query to run, then look at the results of the query and return the answer.
+  Unless the user specifies a specific number of examples they wish to obtain, always limit your query to at most {top_k} results.
+  You can order the results by a relevant column to return the most interesting examples in the database.
+  Never query for all the columns from a specific table, only ask for the relevant columns given the question.
+  You have access to tools for interacting with the database.
+  Only use the below tools. Only use the information returned by the below tools to construct your final answer.
+  You MUST double check your query before executing it. If you get an error while executing a query, rewrite the query and try again.
+
+  If the question does not seem related to the database, just return "I don't know" as the answer.
+"""
+# DO NOT make any DML statements (INSERT, UPDATE, DELETE, DROP etc.) to the database.
+
+# === 1. 建数据库连接 ===
+db_uri = f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}"
+db = SQLDatabase.from_uri(db_uri)
 
 class State(TypedDict):
     # Messages have the type "list". The `add_messages` function
@@ -51,7 +77,7 @@ class BasicToolNode:
             )
             outputs.append(
                 ToolMessage(
-                    content=json.dumps(tool_result),
+                    content=json.dumps(tool_result,  ensure_ascii=False),
                     name=tool_call["name"],
                     tool_call_id=tool_call["id"],
                 )
@@ -74,12 +100,15 @@ def get_weather(city: str) -> str:
     dump_func_line()
     return f"It's always sunny in {city}!"
 
-tools=[get_weather]
+toolkit = SQLDatabaseToolkit(llm=llm, db=db)  # type: ignore[arg-type]
+sql_tools = toolkit.get_tools()
 
-tool_node = BasicToolNode(tools=tools)
+#tools=[sql_tools]
+
+tool_node = BasicToolNode(tools=sql_tools)
 graph_builder.add_node("tools", tool_node)
 
-llm_with_tools = llm.bind_tools(tools)
+llm_with_tools = llm.bind_tools(sql_tools)
 
 def chatbot(state: State):
     dump_func_line()
