@@ -8,15 +8,21 @@ from langchain_core.tools import tool
 from langgraph.graph import END
 
 import json
-from langchain_core.messages import ToolMessage
+from langchain_core.messages import ToolMessage, AIMessage, SystemMessage
 
 from langchain_community.utilities import SQLDatabase
 from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 
 import inspect
 
+#import wikienv, wrappers
+#env = wikienv.WikiEnv()
+#env = wrappers.HotPotQAWrapper(env, split="dev")
+#env = wrappers.LoggingWrapper(env)
+
 def dump_func_line():
     print(inspect.stack()[1].function) #, inspect.currentframe().f_lineno)
+    return
 
 user='root'
 password='mysql-pwd'
@@ -24,24 +30,19 @@ host = "127.0.0.1"
 port = 3306
 database = "foodDB"
 
+'''
 instruction = """Solve a question answering task with interleaving Thought, Action, Observation steps. Thought can reason about the current situation, and Action can be three types: 
 (1) Search[entity], which searches the exact entity on Wikipedia and returns the first paragraph if it exists. If not, it will return some similar entities to search.
 (2) Lookup[keyword], which returns the next sentence containing keyword in the current passage.
 (3) Finish[answer], which returns the answer and finishes the task.
 Here are some examples.
 """
+'''
 
-PREFIX="""You are an agent designed to interact with a SQL database.
-  Given an input question, create a syntactically correct {dialect} query to run, then look at the results of the query and return the answer.
-  Unless the user specifies a specific number of examples they wish to obtain, always limit your query to at most {top_k} results.
-  You can order the results by a relevant column to return the most interesting examples in the database.
-  Never query for all the columns from a specific table, only ask for the relevant columns given the question.
-  You have access to tools for interacting with the database.
-  Only use the below tools. Only use the information returned by the below tools to construct your final answer.
-  You MUST double check your query before executing it. If you get an error while executing a query, rewrite the query and try again.
-
-  If the question does not seem related to the database, just return "I don't know" as the answer.
+instruction = """You are an assistant to answer use's question. Solve a question answering task with interleaving Thought, Action, Observation steps. Thought can reason about the current situation, and Action can be any tool-call, the action is to call some of the tools to complete a action.
+Observations are result, fact or conclution from ToolMessages result.
 """
+system_message = SystemMessage(instruction)
 # DO NOT make any DML statements (INSERT, UPDATE, DELETE, DROP etc.) to the database.
 
 # === 1. 建数据库连接 ===
@@ -57,7 +58,6 @@ class State(TypedDict):
 graph_builder = StateGraph(State)
 
 MODEL="Qwen/Qwen3-4B"
-#MODEL="Qwen/Qwen2.5-7B-Instruct"
 
 class BasicToolNode:
     """A node that runs the tools requested in the last AIMessage."""
@@ -72,13 +72,13 @@ class BasicToolNode:
         dump_func_line()
         if messages := inputs.get("messages", []):
             message = messages[-1]
-            print("messages:", messages)
+            #print("messages:", messages)
         else:
             raise ValueError("No message found in input")
         outputs = []
 
         for tool_call in message.tool_calls:
-            print("tool_call message.tool_calls:", tool_call)
+            #print("tool_call message.tool_calls:", tool_call)
             tool_result = self.tools_by_name[tool_call["name"]].invoke(
                 tool_call["args"]
             )
@@ -89,7 +89,7 @@ class BasicToolNode:
                     tool_call_id=tool_call["id"],
                 )
             )
-        print("output messages:", outputs)  
+        #print("output messages:", outputs)  
         return {"messages": outputs}
 
 inference_server_url = "http://localhost:8000/v1"
@@ -118,10 +118,10 @@ llm_with_tools = llm.bind_tools(sql_tools)
 
 def chatbot(state: State):
     dump_func_line()
-    print("State message:", state["messages"], "*****\n")
+    #print("State message:", state["messages"], "*****\n")
     #return {"messages": [llm.invoke(state["messages"])]}
     output_messages = {"messages": [llm_with_tools.invoke(state["messages"])]}
-    print("output_messages", output_messages)
+    #print("output_messages", output_messages)
     return output_messages
 
 # The first argument is the unique node name
@@ -144,10 +144,10 @@ def route_tools(
         raise ValueError(f"No messages found in input state to tool_edge: {state}")
 
     dump_func_line()
-    print("AI message:", ai_message, "*******")
+    #print("AI message:", ai_message, "*******")
     if hasattr(ai_message, "tool_calls") and len(ai_message.tool_calls) > 0:
         return "tools"
-    print("*** route to END ***")
+    #print("*** route to END ***")
     return END
 
 # The `tools_condition` function returns "tools" if the chatbot asks to use a tool, and "END" if
@@ -179,17 +179,17 @@ except Exception:
 
 def stream_graph_updates(user_input: str):
     dump_func_line()
-    for event in graph.stream({"messages": [{"role": "user", "content": user_input}]}):
-        print("event:", event, "event values", event.values())
+    for event in graph.stream({"messages": [system_message, {"role": "user", "content": user_input}]}):
+        #print("event:", event, "event values", event.values())
         for value in event.values():
             dump_func_line()
-            print("Assistant:", value["messages"][-1].content)
-            dump_func_line()
+            if isinstance(value["messages"][-1], AIMessage):
+                print("Assistant:", value["messages"][-1].content)
 
 while True:
     try:
         user_input = input("User: ")
-        if user_input.lower() in ["quit", "exit", "q"]:
+        if user_input.lower() in ["quit", "exit", "q", " ", ""]:
             print("Goodbye!")
             break
         stream_graph_updates(user_input)
